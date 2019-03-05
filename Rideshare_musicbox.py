@@ -1,8 +1,11 @@
-from guizero import App, Text, PushButton, Picture, Combo, CheckBox, Window, yesno
+from guizero import App, Text, PushButton, Picture, CheckBox, Window, yesno, Box
 from pygame import*
 import pygame.mixer
 import os
 import random
+from threading import Timer
+import wave
+import contextlib
 
 app = App(title="RIDESHARE MUSIC BOX", bg="RoyalBlue3", height="320", width="480")
 
@@ -11,7 +14,19 @@ pygame.mixer.init()
 
 #----------------------------------------------------Get Rock Directories------------------------
 def rock_out():
-    window = Window(app, title="ROCK", height="320", width="480", bg="firebrick4", layout="grid")  
+    window = Window(app, title="ROCK", height="320", width="480", bg="firebrick4", layout="grid")
+    def play_alternative():
+        get_files(directories[0], window)
+    def play_classicrock():
+        get_files(directories[1], window)
+    def play_industrial():
+        get_files(directories[2], window)
+    def play_metal():
+        get_files(directories[3], window)
+    def play_indie():
+        get_files(directories[4], window)
+    def play_pop():
+        get_files(directories[5], window)
     def close_rock_out():
         window.hide()
     welcome_message = Text(window, text="ROCK", size=30, font="Courier New", color="white", grid=[3, 0])
@@ -43,23 +58,14 @@ def rock_out():
     close_rock_out = PushButton(window, text="go back", command=close_rock_out, grid=[3, 6])
     close_rock_out.text_color = "white"
     close_rock_out.font = "Courier New"
-    
-def play_alternative():
-    get_files(directories[0])
-def play_classicrock():
-    get_files(directories[1])
-def play_industrial():
-    get_files(directories[2])
-def play_metal():
-    get_files(directories[3])
-def play_indie():
-    get_files(directories[4])
-def play_pop():
-    get_files(directories[5])
 
 #--------------------------------------------Get R&B Directories----------------------------------------
 def get_hip():
     window = Window(app, title="R&B", height="320", width="480", bg="light slate blue")
+    def play_hiphop():
+        get_files(directories[6], window)
+    def play_classicrb():
+        get_files(directories[7], window)
     def close_get_hip():
         window.hide()
     welcome_message = Text(window, text="R&B", size=30, font="Arial", color="white", align="top")
@@ -79,14 +85,27 @@ def get_hip():
     close_get_hip.font = "Arial"
     close_get_hip.bg = "white"
 
-def play_hiphop():
-    get_files(directories[6])
-def play_classicrb():
-    get_files(directories[7])
-
 #------------------------------------Other Music Directories-----------------------------------------------
 def be_different():
     window = Window(app, title="OTHER", height="320", width="480", bg="mint cream", layout="grid")
+    def play_techno():
+        get_files(directories[8], window)
+    def play_classical():
+        get_files(directories[9], window)
+    def play_jazz():
+        get_files(directories[10], window)
+    def play_blues():
+        get_files(directories[11], window)
+    def play_country():
+        get_files(directories[12], window)
+    def play_folk():
+        get_files(directories[13], window)
+    def play_latin():
+        get_files(directories[14], window)
+    def play_new_age():
+        get_files(directories[15], window)
+    def play_spiritual():
+        get_files(directories[16], window)
     def close_other():
         window.hide()
     welcome_message = Text(window, text="Other Genres", size=24, font="Arial", color="dark slate gray", grid=[3, 0])
@@ -141,31 +160,15 @@ def be_different():
     close_other.font = "Arial"
     close_other.bg = "white"
 
-def play_techno():
-    get_files(directories[8])
-def play_classical():
-    get_files(directories[9])
-def play_jazz():
-    get_files(directories[10])
-def play_blues():
-    get_files(directories[11])
-def play_country():
-    get_files(directories[12])
-def play_folk():
-    get_files(directories[13])
-def play_latin():
-    get_files(directories[14])
-def play_new_age():
-    get_files(directories[15])
-def play_spiritual():
-    get_files(directories[16])
-
 #------------------------------------------Random Directory----------------------------
 def randomize():
-    get_files(directories[(random.randint(0, 16))])
+    window = ""
+    get_files(directories[(random.randint(0, 16))], window)
     
 #-------------------------------------------Get Files----------------------------------
-def get_files(directory):
+def get_files(directory, window):
+    if window != "":
+        window.hide()
     files=[]
     for filename in os.listdir(directory):
         if filename.endswith(".wav"):
@@ -173,38 +176,73 @@ def get_files(directory):
     playMusic(files, directory)
 
 def playMusic(files, directory):
+    if len(files) == 0:
+        song = "Please make another selection!"
+        length = 200
+        show_playing(song, files, directory, length)
+        return
     if shuffle_checkbox.value == 1:
         song = files.pop(random.randint(0,len(files)-1))
     else:
         song = files.pop()
+    song_path = directory + song
+    with contextlib.closing(wave.open(song_path,'r')) as f:
+        frames = f.getnframes()
+        rate = f.getframerate()
+        length = frames /float(rate)
     pygame.mixer.music.load(directory + song)
     pygame.mixer.music.set_endevent(pygame.USEREVENT)
     pygame.mixer.music.play()
-    print("Now Playing: " + song[3:len(song)-4])
-    continue_playing(files, directory, song)
-    
-def continue_playing(files, directory, song):
-    continue_alert = yesno("Song", "Title:\n" + song[3:len(song)-4] + "\n\n-Do you like this song?")
-    if continue_alert == False:
-        app.update()
-    else:
-        running = True
-        app.update()
-        play_next(files, directory, running)
+    song_array = song.split(':')
+    artist = song_array[0]
+    artist = artist[3:]
+    song = song_array[1]
+    song = song[1:len(song)-4]
+    show_playing(artist, song, files, directory, length)
 
-def play_next(files, directory, running):
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.USEREVENT:
-                if files:
-                    if shuffle_checkbox.value == 1:
-                        song = files.pop(random.randint(0,len(files)-1))
-                    else:
-                        song = files.pop()
-                    pygame.mixer.music.load(directory + song)
-                    pygame.mixer.music.play()
-                    print("Now Playing: " + song[3:len(song)-4])
-                    continue_playing(files, directory, song)
+def show_playing(artist, song, files, directory, length):
+    window = Window(app, title="Now Playing", height="320", width="480", bg="white")
+    volume = pygame.mixer.music.get_volume()
+    def next():
+        t.cancel()
+        window.hide()
+        playMusic(files, directory)
+    t = Timer(length, next)
+    t.start()
+    def skip_track():
+        t.cancel()
+        window.hide()
+        playMusic(files, directory)
+    def stop_track():
+        t.cancel()
+        window.hide()
+        pygame.mixer.music.stop()
+    def increase_volume():
+        def max_invisible():
+            max_text.visible = False
+        pygame.mixer.music.set_volume(pygame.mixer.music.get_volume() + 0.1)
+        if pygame.mixer.music.get_volume() == 1.0:
+            max_text.visible = True
+            max_text.after(3000, max_invisible)
+    def decrease_volume():
+        def min_invisible():
+            min_text.visible = False
+        pygame.mixer.music.set_volume(pygame.mixer.music.get_volume() - 0.1)
+        if pygame.mixer.music.get_volume() < 0.1:
+            min_text.show()
+            min_text.after(3000, min_invisible)
+
+    welcome_message = Text(window, text="--Current Track--", size = 16, font="Courier New", color="black")
+    artist_name = Text(window, text=artist, width="fill", height=2, size=14, font="Courier New", color="black")
+    song_title = Text(window, text=song, width="fill", height=2, size=14, font="Courier New", color="black")
+    stop_button = PushButton(window, width=75, height=75, image="stop.gif", command=stop_track, align="left")
+    skip_button = PushButton(window, width=75, height=75, image="skip.gif", command=skip_track, align="right")
+    volume_box = Box(window, width="fill", align="bottom")
+    increase_button = PushButton(volume_box, width=40, height=40, image="increase.gif", command=increase_volume, align="right")
+    decrease_button = PushButton(volume_box, width=40, height=40, image="decrease.gif", command=decrease_volume, align="right")
+    max_text = Text(window, text="MAX", size=10, font="Courier New", visible=False, color="red", align="bottom")
+    min_text = Text(window, text="MIN", size=10, font="Courier New", visible=False, color="red", align="bottom")
+
 
 directories = ["/home/pi/Music/Alternative/", "/home/pi/Music/Classic Rock/", "/home/pi/Music/Industrial/", "/home/pi/Music/Metal/", "/home/pi/Music/Indie/", "/home/pi/Music/Pop/",
                 "/home/pi/Music/Funk/", "/home/pi/Music/Funk/",
@@ -237,5 +275,8 @@ shuffle_checkbox = CheckBox(app, width=20, text="shuffle")
 shuffle_checkbox.text_color = "white"
 shuffle_checkbox.text_size = "12"
 shuffle_checkbox.font = "Georgia"
+
+volume = 0.5
+pygame.mixer.music.set_volume(volume)
 
 app.display()

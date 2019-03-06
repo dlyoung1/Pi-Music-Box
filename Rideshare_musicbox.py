@@ -18,6 +18,7 @@ pygame.mixer.init()
 #----------------------------------------------------Get Rock Directories------------------------
 def rock_out():
     window = Window(app, title="ROCK", height="320", width="480", bg="firebrick4", layout="grid")
+    window.tk.attributes("-fullscreen",True)
     def play_alternative():
         get_files(directories[0], window)
     def play_classicrock():
@@ -65,6 +66,7 @@ def rock_out():
 #--------------------------------------------Get R&B Directories----------------------------------------
 def get_hip():
     window = Window(app, title="R&B", height="320", width="480", bg="light slate blue")
+    window.tk.attributes("-fullscreen",True)
     def play_hiphop():
         get_files(directories[6], window)
     def play_classicrb():
@@ -91,6 +93,7 @@ def get_hip():
 #------------------------------------Other Music Directories-----------------------------------------------
 def be_different():
     window = Window(app, title="OTHER", height="320", width="480", bg="mint cream", layout="grid")
+    window.tk.attributes("-fullscreen",True)
     def play_techno():
         get_files(directories[8], window)
     def play_classical():
@@ -207,6 +210,7 @@ def playMusic(files, directory):
 #-------------------------------------------Now Playing Display----------------------------------
 def show_playing(artist, song, files, directory, length):
     window = Window(app, title="Now Playing", height="320", width="480", bg="white")
+    window.tk.attributes("-fullscreen",True)
     volume = pygame.mixer.music.get_volume()
     def next():
         t.cancel()
@@ -269,22 +273,22 @@ directories = ["/home/pi/Music/Alternative/", "/home/pi/Music/Classic Rock/", "/
 
 welcome_message = Text(app, text="PICK YOUR PLAYLIST", size = 25, font="Georgia", color="midnight blue")
 
-rock_button = PushButton(app, width="fill", height=1, command=rock_out, text="ROCK")
+rock_button = PushButton(app, width="fill", height=2, command=rock_out, text="ROCK")
 rock_button.text_color = "white"
 rock_button.text_size = "12"
 rock_button.font = "Georgia"
 
-rb_button = PushButton(app, width="fill", height=1, command=get_hip, text="R & B")
+rb_button = PushButton(app, width="fill", height=2, command=get_hip, text="R & B")
 rb_button.text_color = "white"
 rb_button.text_size = "12"
 rb_button.font = "Georgia"
 
-other_button = PushButton(app, width="fill", height=1, command=be_different, text="OTHER")
+other_button = PushButton(app, width="fill", height=2, command=be_different, text="OTHER")
 other_button.text_color = "white"
 other_button.text_size = "12"
 other_button.font = "Georgia"
 
-random_button = PushButton(app, width="fill", height=1, command=randomize, text="RANDOM")
+random_button = PushButton(app, width="fill", height=2, command=randomize, text="RANDOM")
 random_button.text_color = "white"
 random_button.text_size = "12"
 random_button.font = "Georgia"

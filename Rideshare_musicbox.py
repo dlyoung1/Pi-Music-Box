@@ -178,6 +178,7 @@ def get_files(directory, window):
             files.append(filename)
     playMusic(files, directory)
 
+#------------------------------------------Play Music Function----------------------------------
 def playMusic(files, directory):
     if len(files) == 0:
         song = "Please make another selection!"
@@ -203,6 +204,7 @@ def playMusic(files, directory):
     song = song[1:len(song)-4]
     show_playing(artist, song, files, directory, length)
 
+#-------------------------------------------Now Playing Display----------------------------------
 def show_playing(artist, song, files, directory, length):
     window = Window(app, title="Now Playing", height="320", width="480", bg="white")
     volume = pygame.mixer.music.get_volume()
@@ -242,17 +244,20 @@ def show_playing(artist, song, files, directory, length):
         file_object.close()
         comment_text.value = ""
 
+#-------------------------------------------Main App Display----------------------------------
     welcome_message = Text(window, text="--Current Track--", size = 16, font="Courier New", color="black")
     artist_name = Text(window, text=artist, width="fill", height=2, size=14, font="Courier New", color="black")
     song_title = Text(window, text=song, width="fill", height=2, size=14, font="Courier New", color="black")
     stop_button = PushButton(window, width=75, height=75, image="/home/pi/Documents/Rideshare/stop.gif", command=stop_track, align="left")
     skip_button = PushButton(window, width=75, height=75, image="/home/pi/Documents/Rideshare/skip.gif", command=skip_track, align="right")
-    volume_box = Box(window, width="fill", align="bottom")
-    increase_button = PushButton(volume_box, width=40, height=40, image="/home/pi/Documents/Rideshare/increase.gif", command=increase_volume, align="right")
-    decrease_button = PushButton(volume_box, width=40, height=40, image="/home/pi/Documents/Rideshare/decrease.gif", command=decrease_volume, align="right")
+    volume_box = Box(window, width="fill", align="bottom", layout="grid")
+    empty_space1 = Text(volume_box, text="                        ", grid=[0,0])
+    increase_button = PushButton(volume_box, width=40, height=40, image="/home/pi/Documents/Rideshare/increase.gif", command=increase_volume, grid=[3,0])
+    empty_space2 = Text(volume_box, text="     ", grid=[2,0])
+    decrease_button = PushButton(volume_box, width=40, height=40, image="/home/pi/Documents/Rideshare/decrease.gif", command=decrease_volume, grid=[1,0])
     max_text = Text(window, text="MAX", size=10, font="Courier New", visible=False, color="red", align="bottom")
     min_text = Text(window, text="MIN", size=10, font="Courier New", visible=False, color="red", align="bottom")
-    comment_text = TextBox(window)
+    comment_text = TextBox(window, width="20", multiline=True, height=2)
     comment_text_button = PushButton(window, command=write_comment, text="comment")
     comment_text_button.text_size = "8"
     comment_text_button.font = "Courier New"

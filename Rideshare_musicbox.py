@@ -1,4 +1,6 @@
-from guizero import App, Text, PushButton, Picture, CheckBox, Window, yesno, Box
+#! /usr/bin/python3
+
+from guizero import App, Text, TextBox, PushButton, Picture, CheckBox, Window, yesno, Box
 from pygame import*
 import pygame.mixer
 import os
@@ -6,6 +8,7 @@ import random
 from threading import Timer
 import wave
 import contextlib
+import datetime
 
 app = App(title="RIDESHARE MUSIC BOX", bg="RoyalBlue3", height="320", width="480")
 
@@ -231,42 +234,52 @@ def show_playing(artist, song, files, directory, length):
         if pygame.mixer.music.get_volume() < 0.1:
             min_text.show()
             min_text.after(3000, min_invisible)
+    
+    def write_comment():
+        file_object = open('/home/pi/Desktop/musicboxcomments', 'a')
+        file_object.write(str(datetime.datetime.now()) + "\n")
+        file_object.write(comment_text.value + "\n")
+        file_object.close()
+        comment_text.value = ""
 
     welcome_message = Text(window, text="--Current Track--", size = 16, font="Courier New", color="black")
     artist_name = Text(window, text=artist, width="fill", height=2, size=14, font="Courier New", color="black")
     song_title = Text(window, text=song, width="fill", height=2, size=14, font="Courier New", color="black")
-    stop_button = PushButton(window, width=75, height=75, image="stop.gif", command=stop_track, align="left")
-    skip_button = PushButton(window, width=75, height=75, image="skip.gif", command=skip_track, align="right")
+    stop_button = PushButton(window, width=75, height=75, image="/home/pi/Documents/Rideshare/stop.gif", command=stop_track, align="left")
+    skip_button = PushButton(window, width=75, height=75, image="/home/pi/Documents/Rideshare/skip.gif", command=skip_track, align="right")
     volume_box = Box(window, width="fill", align="bottom")
-    increase_button = PushButton(volume_box, width=40, height=40, image="increase.gif", command=increase_volume, align="right")
-    decrease_button = PushButton(volume_box, width=40, height=40, image="decrease.gif", command=decrease_volume, align="right")
+    increase_button = PushButton(volume_box, width=40, height=40, image="/home/pi/Documents/Rideshare/increase.gif", command=increase_volume, align="right")
+    decrease_button = PushButton(volume_box, width=40, height=40, image="/home/pi/Documents/Rideshare/decrease.gif", command=decrease_volume, align="right")
     max_text = Text(window, text="MAX", size=10, font="Courier New", visible=False, color="red", align="bottom")
     min_text = Text(window, text="MIN", size=10, font="Courier New", visible=False, color="red", align="bottom")
-
+    comment_text = TextBox(window)
+    comment_text_button = PushButton(window, command=write_comment, text="comment")
+    comment_text_button.text_size = "8"
+    comment_text_button.font = "Courier New"
 
 directories = ["/home/pi/Music/Alternative/", "/home/pi/Music/Classic Rock/", "/home/pi/Music/Industrial/", "/home/pi/Music/Metal/", "/home/pi/Music/Indie/", "/home/pi/Music/Pop/",
                 "/home/pi/Music/Funk/", "/home/pi/Music/Funk/",
                 "/home/pi/Music/Techno/", "/home/pi/Music/Classical/", "/home/pi/Music/Jazz/", "/home/pi/Music/Blues/", "/home/pi/Music/Country/", "/home/pi/Music/Folk/",
                  "/home/pi/Music/Latin/", "/home/pi/Music/New Age/", "/home/pi/Music/Spiritual/"]
 
-welcome_message = Text(app, text="PICK YOUR PLAYLIST", size = 30, font="Georgia", color="midnight blue")
+welcome_message = Text(app, text="PICK YOUR PLAYLIST", size = 25, font="Georgia", color="midnight blue")
 
-rock_button = PushButton(app, width="fill", height=2, command=rock_out, text="ROCK")
+rock_button = PushButton(app, width="fill", height=1, command=rock_out, text="ROCK")
 rock_button.text_color = "white"
 rock_button.text_size = "12"
 rock_button.font = "Georgia"
 
-rb_button = PushButton(app, width="fill", height=2, command=get_hip, text="R & B")
+rb_button = PushButton(app, width="fill", height=1, command=get_hip, text="R & B")
 rb_button.text_color = "white"
 rb_button.text_size = "12"
 rb_button.font = "Georgia"
 
-other_button = PushButton(app, width="fill", height=2, command=be_different, text="OTHER")
+other_button = PushButton(app, width="fill", height=1, command=be_different, text="OTHER")
 other_button.text_color = "white"
 other_button.text_size = "12"
 other_button.font = "Georgia"
 
-random_button = PushButton(app, width="fill", height=2, command=randomize, text="RANDOM")
+random_button = PushButton(app, width="fill", height=1, command=randomize, text="RANDOM")
 random_button.text_color = "white"
 random_button.text_size = "12"
 random_button.font = "Georgia"
@@ -278,5 +291,7 @@ shuffle_checkbox.font = "Georgia"
 
 volume = 0.5
 pygame.mixer.music.set_volume(volume)
+
+app.tk.attributes("-fullscreen",True)
 
 app.display()

@@ -9,6 +9,7 @@ from threading import Timer
 import wave
 import contextlib
 import datetime
+import serial
 
 app = App(title="RIDESHARE MUSIC BOX", bg="RoyalBlue3", height="320", width="480")
 
@@ -242,13 +243,17 @@ def show_playing(artist, song, files, directory, length):
             min_text.after(3000, min_invisible)
     
     def write_comment():
+        def comment_invisible():
+            comment_result_text.visible = False  
         file_object = open('/home/pi/Desktop/musicboxcomments', 'a')
         file_object.write(str(datetime.datetime.now()) + "\n")
-        file_object.write(comment_text.value + "\n")
+        file_object.write(comment_text.value)
         file_object.close()
+        comment_result_text.show()
+        comment_result_text.after(3000, comment_invisible)
         comment_text.value = ""
+        get_comments()
 
-#-------------------------------------------Main App Display----------------------------------
     welcome_message = Text(window, text="--Current Track--", size = 16, font="Courier New", color="black")
     artist_name = Text(window, text=artist, width="fill", height=2, size=14, font="Courier New", color="black")
     song_title = Text(window, text=song, width="fill", height=2, size=14, font="Courier New", color="black")
@@ -265,34 +270,66 @@ def show_playing(artist, song, files, directory, length):
     comment_text_button = PushButton(window, command=write_comment, text="comment")
     comment_text_button.text_size = "8"
     comment_text_button.font = "Courier New"
+    comment_result_text = Text(window, text="Comment saved. Thanks!", size=10, font="Courier New", visible=False, color="red", align="bottom")
 
+#------------------------------------------------Retrieve daily comments and send to Arduino---------------------------------
+def get_comments():
+    space = b"                "
+    comment_file = open("/home/pi/Desktop/musicboxcomments", "r")
+    comment_array = comment_file.readlines()
+    comment_array = comment_array[1::2]
+    comment_file.close()
+    ser = serial.Serial("/dev/ttyACM0", 9600)
+    def start_comments():
+        ser.write(b"Today's comments")
+        ser.write(space)
+        ser.flushInput()
+        t_next_comment1 = Timer(16, next_comment)
+        t_next_comment1.start()
+    def next_comment():
+        if(len(comment_array) == 0):
+            ser.close()
+            return
+        t_next_comment2 = Timer(2, start_next_comment)
+        t_next_comment2.start()
+    def start_next_comment():
+        comment = comment_array.pop()
+        if(comment.endswith('\n')):
+            comment = comment[:len(comment)-1]
+        ser.write(comment.encode())
+        ser.write(space)
+        ser.flushInput()
+        t_next_comment3 = Timer(((len(comment) + 16) / 2), next_comment)
+        t_next_comment3.start()
+    #when the port opens the Arduino resets, so a bit of extra time is required before sending data from the Pi
+    t_comment = Timer(2, start_comments)
+    t_comment.start()
+
+    
+#------------------------------------------Music File Directories-----------------------------
 directories = ["/home/pi/Music/Alternative/", "/home/pi/Music/Classic Rock/", "/home/pi/Music/Industrial/", "/home/pi/Music/Metal/", "/home/pi/Music/Indie/", "/home/pi/Music/Pop/",
                 "/home/pi/Music/Funk/", "/home/pi/Music/Funk/",
                 "/home/pi/Music/Techno/", "/home/pi/Music/Classical/", "/home/pi/Music/Jazz/", "/home/pi/Music/Blues/", "/home/pi/Music/Country/", "/home/pi/Music/Folk/",
                  "/home/pi/Music/Latin/", "/home/pi/Music/New Age/", "/home/pi/Music/Spiritual/"]
 
+#-------------------------------------------Main App Display----------------------------------
 welcome_message = Text(app, text="PICK YOUR PLAYLIST", size = 25, font="Georgia", color="midnight blue")
-
 rock_button = PushButton(app, width="fill", height=2, command=rock_out, text="ROCK")
 rock_button.text_color = "white"
 rock_button.text_size = "12"
 rock_button.font = "Georgia"
-
 rb_button = PushButton(app, width="fill", height=2, command=get_hip, text="R & B")
 rb_button.text_color = "white"
 rb_button.text_size = "12"
 rb_button.font = "Georgia"
-
 other_button = PushButton(app, width="fill", height=2, command=be_different, text="OTHER")
 other_button.text_color = "white"
 other_button.text_size = "12"
 other_button.font = "Georgia"
-
 random_button = PushButton(app, width="fill", height=2, command=randomize, text="RANDOM")
 random_button.text_color = "white"
 random_button.text_size = "12"
 random_button.font = "Georgia"
-
 shuffle_checkbox = CheckBox(app, width=20, text="shuffle")
 shuffle_checkbox.text_color = "white"
 shuffle_checkbox.text_size = "12"
